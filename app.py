@@ -13,6 +13,8 @@ import csv
 import os
 import json # Thêm thư viện json
 
+CHAT_SESSIONS = {}  # Dict: ma_can_bo -> phiên chat riêng
+
 # === Khởi tạo ứng dụng Flask ===
 app = Flask(__name__)
 CORS(app)
@@ -65,6 +67,21 @@ EMPLOYEE_DATA_FILE = 'can_bo.csv'
 # === Biến toàn cục lưu trữ dữ liệu ===
 WORD_FILES = {}
 WORD_CONTENTS = {}
+CHAT_SESSIONS = {}  # Dict: ma_can_bo -> phiên chat riêng
+hungdaica = "" \
+"VIBA là một ứng dụng AI được phát triển bởi Nguyễn Thái Hùng, nhằm hỗ trợ cán bộ BIDV Bắc Hải Dương trong việc tra cứu thông tin và giải đáp thắc mắc dựa trên tài liệu đã cung cấp. " \
+"Ứng dụng này sử dụng công nghệ AI tiên tiến để cung cấp câu trả lời chính xác và nhanh chóng cho các câu hỏi liên quan đến tài liệu, giúp tiết kiệm thời gian và nâng cao hiệu quả công việc của cán bộ ngân hàng. " \
+"Với VIBA, cán bộ có thể dễ dàng tra cứu thông tin về các sản phẩm, dịch vụ, quy trình làm việc và các vấn đề liên quan đến ngân hàng mà không cần phải tìm kiếm trong tài liệu thủ công. " \
+"Ứng dụng này được thiết kế để hỗ trợ cán bộ trong việc nâng cao kiến thức và kỹ năng, từ đó cải thiện chất lượng dịch vụ khách hàng và tăng cường sự hài lòng của khách hàng đối với ngân hàng. " \
+"VIBA là viết tắt của 'Virtual Intelligent BIDV Bắc Hải Dương Assistant'." \
+"Ứng dụng này do Nguyễn Thái Hùng - Giám đốc PGD Tân Dân - BIDV Bắc Hải Dương phát triển." \
+"Ứng dụng này được phát triển với sự hỗ trợ của Google Gemini AI, một trong những công nghệ AI tiên tiến nhất hiện nay. " \
+"Với khả năng xử lý ngôn ngữ tự nhiên và học sâu, Gemini AI giúp VIBA hiểu và phân tích các câu hỏi của cán bộ một cách chính xác và nhanh chóng. " \
+"Điều này giúp VIBA cung cấp câu trả lời chính xác và hữu ích cho cán bộ, từ đó nâng cao hiệu quả làm việc và tiết kiệm thời gian cho cán bộ ngân hàng. " \
+"Trong tương lai, VIBA sẽ tiếp tục được cải tiến và nâng cấp để đáp ứng tốt hơn nhu cầu của cán bộ ngân hàng và khách hàng. " \
+"Với sự phát triển không ngừng của công nghệ AI, VIBA sẽ trở thành một công cụ hữu ích và cần thiết cho cán bộ ngân hàng trong việc nâng cao chất lượng dịch vụ và cải thiện trải nghiệm của khách hàng. " \
+"Trong quá trình sử dụng, nếu cán bộ có bất kỳ câu hỏi nào về ứng dụng hoặc cần hỗ trợ, vui lòng liên hệ với Nguyễn Thái Hùng để được hỗ trợ" \
+
 
 # === Các hàm hỗ trợ ===
 
@@ -222,51 +239,58 @@ def verify_employee():
     except Exception as e:
         print(f"LỖI không xác định khi xử lý file CSV hoặc xác thực: {e}")
         return jsonify({'status': 'error', 'message': 'Đã xảy ra lỗi trong quá trình xác thực. Vui lòng thử lại sau.'}), 500
+# Tạo phiên chat riêng cho từng cán bộ
+def get_or_create_chat_session(employee_id):
+    """Lấy hoặc tạo phiên chat riêng cho mỗi mã cán bộ."""
+    global CHAT_SESSIONS
 
-# --- Route /ask giữ nguyên logic prompt ---
-@app.route('/ask', methods=['POST'])
-def ask():
-    """API Endpoint để nhận câu hỏi và trả lời bằng Gemini dựa trên nội dung file Word."""
-    print("[Route] POST /ask - Nhận câu hỏi từ người dùng.")
-    data = request.get_json()
-    if not data or 'question' not in data:
-         print("(!) Lỗi yêu cầu: Thiếu 'question' trong JSON.")
-         return jsonify({'error': 'Yêu cầu không hợp lệ, thiếu câu hỏi.'}), 400
-    question = data['question'].strip()
-    if not question:
-        print("(!) Lỗi yêu cầu: Câu hỏi rỗng.")
-        return jsonify({'error': 'Câu hỏi không được để trống.'}), 400
-    print(f"  - Câu hỏi nhận được: \"{question}\"")
+    if employee_id in CHAT_SESSIONS:
+        return CHAT_SESSIONS[employee_id]
 
-    prompt = ""
-    if not WORD_CONTENTS:
-        print("  (!) Không có nội dung file Word. Trả lời dựa trên kiến thức chung.")
-        prompt = f"Trả lời câu hỏi sau một cách ngắn gọn và chính xác: {question}"
-    else:
-        print(f"  - Sử dụng nội dung từ {len(WORD_CONTENTS)} file Word làm ngữ cảnh.")
-        all_context = "\n\n---\n\n".join(WORD_CONTENTS.values())
-        file_names_str = ", ".join(WORD_FILES.keys())
-        prompt = f"""
-Bạn là một trợ lý AI thông minh tên là VIBA do Nguyễn Thái Hùng tạo ra chuyên trả lời các câu hỏi dựa trên tài liệu nội bộ.
-Dưới đây là nội dung tổng hợp từ các văn bản ({file_names_str}):
+    model = genai.GenerativeModel(model_name=MODEL_NAME,
+                                  generation_config=generation_config,
+                                  safety_settings=safety_settings)
+
+    all_context = "\n\n---\n\n".join(WORD_CONTENTS.values())
+    context_prompt = f"""
+Bạn là trợ lý AI thông minh tên là VIBA, do Nguyễn Thái Hùng tạo ra để hỗ trợ cán bộ BIDV Bắc Hải Dương dựa trên tài liệu đã cung cấp.
+Dưới đây là toàn bộ thông tin cần ghi nhớ để trả lời các câu hỏi sau này:
+1. Thông tin từ các văn bản Word đã tải về từ Google Drive:
 <<<
 {all_context}
 >>>
-Nhiệm vụ của bạn là: Dựa vào thông tin trong các văn bản trên, hãy trả lời câu hỏi sau một cách ngắn gọn, chính xác và đầy đủ:
-Câu hỏi: "{question}"
-Nếu không thể tìm thấy câu trả lời trong văn bản, hãy tìm các nguồn dữ liệu khác để trả lời theo mẫu: "Tôi không tìm thấy thông tin này trong tài liệu hiện có, nhưng theo kiến thức của tôi: [trả lời]".
+2. Thông tin thêm:
+<<<
+{hungdaica}
+Hãy ghi nhớ và sử dụng thông tin này trong suốt cuộc hội thoại.
 """
-    print("  - Đang gửi yêu cầu đến Gemini API...")
-    if not GOOGLE_API_KEY: # Kiểm tra lại API key trước khi gọi
-         return jsonify({'error': 'Lỗi cấu hình phía server: Không tìm thấy Gemini API Key.'}), 500
+    chat_session = model.start_chat(history=[{"role": "user", "parts": [context_prompt]}])
+    CHAT_SESSIONS[employee_id] = chat_session
+    print(f"-> Đã tạo phiên chat mới cho cán bộ {employee_id}")
+    return chat_session
+# --- Route /ask phiên chat theo mã cán bộ ---
+@app.route('/ask', methods=['POST'])
+def ask():
+    """API trả lời câu hỏi, dùng phiên chat riêng theo mã cán bộ."""
+    print("[Route] POST /ask - Nhận câu hỏi từ người dùng.")
+    data = request.get_json()
+
+    # Kiểm tra input
+    question = data.get('question', '').strip()
+    employee_id = data.get('employee_id', '').strip()
+
+    if not question:
+        return jsonify({'error': 'Câu hỏi không được để trống.'}), 400
+    if not employee_id:
+        return jsonify({'error': 'Thiếu mã cán bộ.'}), 400
+
+    print(f"  - Mã cán bộ: {employee_id} | Câu hỏi: \"{question}\"")
+
     try:
-        model = genai.GenerativeModel(model_name=MODEL_NAME,
-                                    generation_config=generation_config,
-                                    safety_settings=safety_settings)
-        response = model.generate_content(prompt)
-        answer = response.text
+        chat_session = get_or_create_chat_session(employee_id)
+        response = chat_session.send_message(question)
         print("  -> Nhận được câu trả lời từ Gemini.")
-        return jsonify({'answer': answer})
+        return jsonify({'answer': response.text})
     except Exception as e:
         print(f"LỖI khi gọi Gemini API: {e}")
         return jsonify({'error': f'Đã xảy ra lỗi khi giao tiếp với AI. Vui lòng thử lại sau.'}), 500
