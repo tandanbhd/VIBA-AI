@@ -380,11 +380,14 @@
                 loadingIndicator.textContent = 'VIBA AI đang trả lời...';
                 try {
                     // Gọi API backend để hỏi AI
-                    const response = await fetch('/ask', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ question: userMessageToSend }) // Gửi câu hỏi
-                    });
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: userMessageToSend,    // Gửi câu hỏi
+                        employee_id: currentEmployeeId // gửi mã cán bộ đi cùng
+                    })
+                });
 
                     // Ẩn chỉ báo tải *trước khi* bắt đầu hiển thị câu trả lời
                     loadingIndicator.style.display = 'none';
