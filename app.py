@@ -220,7 +220,7 @@ def verify_employee():
                 if row.get('ma_can_bo', '').strip() == employee_id:
                     ho_ten = row.get('ho_ten', 'N/A').strip()
                     chuc_vu = row.get('chuc_vu', '').strip()
-                    greeting = f"Chào {chuc_vu} - {ho_ten}. Mã cán bộ {employee_id} đã được xác nhận. Xin mời đặt câu hỏi!"
+                    greeting = f"Mã cán bộ {employee_id} đã được xác nhận. Xin chào {chuc_vu} - {ho_ten}!"
                     # WORD_FILES được load khi khởi động ứng dụng
                     file_list = list(WORD_FILES.keys())
                     print(f"  -> Xác nhận thành công: Mã {employee_id} -> {chuc_vu} {ho_ten}.")
