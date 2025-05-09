@@ -335,11 +335,12 @@
                             // Kiểm tra xem có danh sách file từ backend không
                             if (data.file_list && data.file_list.length > 0) {
                                 // Có danh sách file -> Tạo và hiển thị tin nhắn liệt kê file
-                                let fileListMessage = "Tôi đã sẵn sàng hỗ trợ bạn với các tài liệu nội bộ sau:\n";
+                                let fileListMessage = "Tôi có thể hỗ trợ bạn trên cơ sở nội dung của các văn bản sau:\n";
                                 data.file_list.forEach((fileName, index) => {
                                     fileListMessage += `${index + 1}. ${fileName}\n`;
                                 });
                                 fileListMessage = fileListMessage.trim(); // Xóa dòng trống cuối
+                                fileListMessage += "\n Ngoài ra tôi cũng có thể trả lời các câu hỏi khác như một trợ lý ảo.";
                                 fileListMessage += "\n Xin mời đặt câu hỏi.";
 
                                 // Hiển thị danh sách file (cũng dùng hiệu ứng gõ)
