@@ -406,5 +406,6 @@ if __name__ != '__main__': # Thay đổi điều kiện để code bên dưới 
     print(f"- File dữ liệu cán bộ: {'Sẵn sàng' if os.path.exists(EMPLOYEE_DATA_FILE) else 'Không tìm thấy'}")
     print("="*30)
     print("\n[+] Thiết lập Google Sheet...")
+    setup_drive_service()
     setup_sheet_service()
 # Lưu ý: KHÔNG CÓ app.run() ở đây nữa. Render sẽ dùng Gunicorn.
