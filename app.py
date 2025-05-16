@@ -12,8 +12,10 @@ from google.oauth2 import service_account
 import csv
 import os
 import json # Thêm thư viện json
+from flask import request, render_template, redirect, url_for # Thêm import Flask để xem logchat
 
 CHAT_SESSIONS = {}  # Dict: ma_can_bo -> phiên chat riêng
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') # Lấy mật khẩu admin từ biến môi trường xem logchat
 
 # === Khởi tạo ứng dụng Flask ===
 app = Flask(__name__)
@@ -180,7 +182,7 @@ def load_word_file_contents(file_ids_dict):
 
 # === Các Route của Flask ===
 
-@app.route('/')
+@app.route('/') #Hiển thị trang chính
 def index():
     """Route chính, trả về trang giao diện chat (index.html)."""
     print("[Route] GET / - Hiển thị trang chat.")
@@ -239,6 +241,31 @@ def verify_employee():
     except Exception as e:
         print(f"LỖI không xác định khi xử lý file CSV hoặc xác thực: {e}")
         return jsonify({'status': 'error', 'message': 'Đã xảy ra lỗi trong quá trình xác thực. Vui lòng thử lại sau.'}), 500
+
+# --- Route /logchat để xem log chat ---
+@app.route('/logchat')
+def logchat():
+    password = request.args.get('pass')
+    if not password or password != ADMIN_PASSWORD:
+        print("Truy cập logchat bị từ chối do sai mật khẩu.")
+        return redirect(url_for('index'))  # Cút về trang chủ
+
+    logs = []
+    if os.path.exists(CHAT_LOG_FILE):
+        try:
+            with open(CHAT_LOG_FILE, mode='r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    logs.append({
+                        'employee_id': row.get('employee_id', ''),
+                        'timestamp': row.get('timestamp', ''),
+                        'question': row.get('question', ''),
+                        'answer': row.get('answer', ''),
+                    })
+        except Exception as e:
+            print(f"Lỗi khi đọc file log: {e}")
+    return render_template('logchat.html', logs=logs)
+
 # Tạo phiên chat riêng cho từng cán bộ
 def get_or_create_chat_session(employee_id):
     """Lấy hoặc tạo phiên chat riêng cho mỗi mã cán bộ."""
