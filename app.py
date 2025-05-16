@@ -12,10 +12,20 @@ from google.oauth2 import service_account
 import csv
 import os
 import json # Thêm thư viện json
-from flask import request, render_template, redirect, url_for # Thêm import Flask để xem logchat
+
 
 CHAT_SESSIONS = {}  # Dict: ma_can_bo -> phiên chat riêng
+
+
+# Thêm các thư viện để tạo logchat
+from flask import request, render_template, redirect, url_for 
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') # Lấy mật khẩu admin từ biến môi trường xem logchat
+from datetime import datetime
+from googleapiclient.discovery import build as build_sheet
+from googleapiclient.errors import HttpError as SheetHttpError
+SHEET_ID = os.environ.get('GOOGLE_SHEET_ID')  # Biến google Sheet ID từ biến môi trường
+SHEET_SERVICE = None
+EMPLOYEE_NAME_MAP = {}  # ma_can_bo -> ho_ten
 
 # === Khởi tạo ứng dụng Flask ===
 app = Flask(__name__)
@@ -180,8 +190,43 @@ def load_word_file_contents(file_ids_dict):
     print(f"-> Hoàn tất đọc nội dung. Đã đọc thành công {len(contents)}/{total_files} file.")
     return contents
 
-# === Các Route của Flask ===
+# --- Hàm ghi log chat vào Google Sheet ---
+def setup_sheet_service():
+    global SHEET_SERVICE
+    try:
+        creds = service_account.Credentials.from_service_account_info(
+            json.loads(SERVICE_ACCOUNT_INFO_JSON),
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        SHEET_SERVICE = build_sheet('sheets', 'v4', credentials=creds)
+        print("-> Kết nối Google Sheets API thành công.")
+    except Exception as e:
+        print(f"LỖI khi kết nối Google Sheets: {e}")
 
+def log_to_sheet(employee_id, question, answer):
+    if not SHEET_SERVICE or not SHEET_ID:
+        print("(!) Không có kết nối Google Sheets. Bỏ qua ghi log.")
+        return
+
+    ho_ten = EMPLOYEE_NAME_MAP.get(employee_id, employee_id)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    values = [[ho_ten, timestamp, question, answer]]
+    body = {'values': values}
+
+    try:
+        sheet = SHEET_SERVICE.spreadsheets()
+        sheet.values().append(
+            spreadsheetId=SHEET_ID,
+            range='A:D',
+            valueInputOption='RAW',
+            body=body
+        ).execute()
+        print(f"-> Đã ghi log: {ho_ten} - {timestamp}")
+    except SheetHttpError as e:
+        print(f"LỖI khi ghi log vào Google Sheet: {e}")
+
+
+# === Các Route của Flask ===
 @app.route('/') #Hiển thị trang chính
 def index():
     """Route chính, trả về trang giao diện chat (index.html)."""
@@ -241,31 +286,7 @@ def verify_employee():
     except Exception as e:
         print(f"LỖI không xác định khi xử lý file CSV hoặc xác thực: {e}")
         return jsonify({'status': 'error', 'message': 'Đã xảy ra lỗi trong quá trình xác thực. Vui lòng thử lại sau.'}), 500
-
-# --- Route /logchat để xem log chat ---
-@app.route('/logchat')
-def logchat():
-    password = request.args.get('pass')
-    if not password or password != ADMIN_PASSWORD:
-        print("Truy cập logchat bị từ chối do sai mật khẩu.")
-        return redirect(url_for('index'))  # Cút về trang chủ
-
-    logs = []
-    if os.path.exists(CHAT_LOG_FILE):
-        try:
-            with open(CHAT_LOG_FILE, mode='r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    logs.append({
-                        'employee_id': row.get('employee_id', ''),
-                        'timestamp': row.get('timestamp', ''),
-                        'question': row.get('question', ''),
-                        'answer': row.get('answer', ''),
-                    })
-        except Exception as e:
-            print(f"Lỗi khi đọc file log: {e}")
-    return render_template('logchat.html', logs=logs)
-
+    EMPLOYEE_NAME_MAP[employee_id] = ho_ten
 # Tạo phiên chat riêng cho từng cán bộ
 def get_or_create_chat_session(employee_id):
     """Lấy hoặc tạo phiên chat riêng cho mỗi mã cán bộ."""
@@ -324,10 +345,33 @@ def ask():
         chat_session = get_or_create_chat_session(employee_id)
         response = chat_session.send_message(question)
         print("  -> Nhận được câu trả lời từ Gemini.")
-        return jsonify({'answer': response.text})
+        # Ghi log câu hỏi và câu trả lời vào Google Sheet
+        answer_text = response.text
+        log_to_sheet(employee_id, question, answer_text)
+        return jsonify({'answer': answer_text})
     except Exception as e:
         print(f"LỖI khi gọi Gemini API: {e}")
         return jsonify({'error': f'Đã xảy ra lỗi khi giao tiếp với AI. Vui lòng thử lại sau.'}), 500
+
+# --- Route /logchat để xem log chat ---
+@app.route('/chatlog', methods=['GET', 'POST'])
+def chatlog():
+    error = None
+    logs = None
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == ADMIN_PASSWORD:
+            try:
+                result = SHEET_SERVICE.spreadsheets().values().get(
+                    spreadsheetId=SHEET_ID,
+                    range='A2:D'
+                ).execute()
+                logs = result.get('values', [])
+            except Exception as e:
+                error = f"Lỗi khi đọc dữ liệu: {e}"
+        else:
+            error = "Sai mật khẩu. Vui lòng thử lại."
+    return render_template('chatlog.html', error=error, logs=logs)
 
 # === Khối thực thi chính khi chạy file app.py (chỉ chạy khi start bằng python app.py) ===
 # Phần này sẽ không được Render sử dụng trực tiếp, nhưng hữu ích để kiểm tra cấu hình ban đầu
@@ -361,5 +405,6 @@ if __name__ != '__main__': # Thay đổi điều kiện để code bên dưới 
     print(f"- Số file Word được tải: {len(WORD_FILES)}")
     print(f"- File dữ liệu cán bộ: {'Sẵn sàng' if os.path.exists(EMPLOYEE_DATA_FILE) else 'Không tìm thấy'}")
     print("="*30)
-
+    print("\n[+] Thiết lập Google Sheet...")
+    setup_sheet_service()
 # Lưu ý: KHÔNG CÓ app.run() ở đây nữa. Render sẽ dùng Gunicorn.
