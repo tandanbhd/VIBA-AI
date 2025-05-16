@@ -88,12 +88,18 @@
 
         /* Ô nhập liệu */
         #message-input {
-            flex-grow: 1; /* Cho phép ô nhập liệu co giãn */
-            margin-right: 10px; /* Khoảng cách với nút gửi */
-            border-radius: 20px; /* Bo tròn */
-            padding: 10px 15px; /* Padding bên trong */
-            border: 1px solid #ced4da; /* Viền */
-            font-size: 1rem; /* Cỡ chữ */
+            flex-grow: 1;
+            margin-right: 10px;
+            border-radius: 20px;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            font-size: 1rem;
+            resize: none; /* Không cho resize bằng chuột */
+            min-height: 45px;
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.4;
+            font-family: inherit;
         }
         #message-input:focus {
             border-color: #86b7fe; /* Đổi màu viền khi focus */
@@ -156,7 +162,7 @@
     </div>
 
     <div class="input-container">
-        <input type="text" id="message-input" placeholder="Đang kết nối..." autocomplete="off" disabled>
+        <textarea id="message-input" placeholder="Đang kết nối..." disabled rows="1"></textarea>
         <button id="send-button" type="button" title="Gửi tin nhắn" disabled>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
                 <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
@@ -170,6 +176,10 @@
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
         const loadingIndicator = document.getElementById('loading-indicator');
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = `${messageInput.scrollHeight}px`;
+        });
 
         // === Biến trạng thái ===
         let isVerified = false; // Theo dõi trạng thái xác thực mã cán bộ
