@@ -268,6 +268,7 @@ def verify_employee():
                     ho_ten = row.get('ho_ten', 'N/A').strip()
                     chuc_vu = row.get('chuc_vu', '').strip()
                     greeting = f"Mã cán bộ {employee_id} đã được xác nhận. Xin chào {chuc_vu} - {ho_ten}!"
+                    EMPLOYEE_NAME_MAP[employee_id] = ho_ten  # Gán tên cán bộ vào mã cán bộ để lưu chatlogs theo tên
                     # WORD_FILES được load khi khởi động ứng dụng
                     file_list = list(WORD_FILES.keys())
                     print(f"  -> Xác nhận thành công: Mã {employee_id} -> {chuc_vu} {ho_ten}.")
