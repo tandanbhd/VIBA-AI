@@ -9,9 +9,10 @@ body {
 }
 
 .chat-container {
+width: 100vw; /* Chiều rộng linh hoạt */
 max-width: 100%; /* Chiều rộng tối đa */
-width: 100%; /* Chiều rộng linh hoạt */
 height: 100vh; /* Chiều cao linh hoạt */
+max-height: 100%; /* Chiều cao tối đa */
 margin: auto; /* Căn giữa theo chiều ngang */
 flex-grow: 1; /* Cho phép khung chat co giãn để lấp đầy không gian */
 overflow-y: hidden; /* Thêm thanh cuộn dọc khi nội dung vượt quá */

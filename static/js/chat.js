@@ -36,8 +36,6 @@ function typeEffect(element, text, callback) {
   const speed = 12;
   element.textContent = '';
   chatContainer.scrollTop = chatContainer.scrollHeight;
-  let aborted = false;
-  typingAbort = () => aborted = true;
 
   function typeCharacter() {
     if (aborted) {
