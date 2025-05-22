@@ -11,9 +11,10 @@ body {
 .chat-container {
 max-width: 800px; /* Chiều rộng tối đa */
 width: 95%; /* Chiều rộng linh hoạt */
+height: 95vh; /* Chiều cao linh hoạt */
 margin: auto; /* Căn giữa theo chiều ngang */
 flex-grow: 1; /* Cho phép khung chat co giãn để lấp đầy không gian */
-overflow-y: scroll; /* Thêm thanh cuộn dọc khi nội dung vượt quá */
+overflow-y: hidden; /* Thêm thanh cuộn dọc khi nội dung vượt quá */
 padding: 20px;
 display: flex;
 flex-direction: column;
