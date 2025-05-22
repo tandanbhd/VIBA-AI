@@ -390,7 +390,7 @@ def chatlog():
 
 # === Khối thực thi chính khi chạy file app.py (chỉ chạy khi start bằng python app.py) ===
 # Phần này sẽ không được Render sử dụng trực tiếp, nhưng hữu ích để kiểm tra cấu hình ban đầu
-if __name__ == '__main__': # Thay đổi điều kiện để code bên dưới chạy khi import
+if __name__ != '__main__': # Thay đổi điều kiện để code bên dưới chạy khi import
 # Nếu Deploy internet thay == thành !=
     print("="*30)
     print("KHỞI TẠO ỨNG DỤNG VIBA AI CHAT")
@@ -427,9 +427,9 @@ if __name__ == '__main__': # Thay đổi điều kiện để code bên dưới 
 
 
     # Khởi động Flask server localhost
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
-    print("\n-> Khởi động Flask development server...")
-    print("   Truy cập ứng dụng tại: http://127.0.0.1:5000 (hoặc địa chỉ IP của máy nếu host='0.0.0.0')")
+    #app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    #print("\n-> Khởi động Flask development server...")
+    #print("   Truy cập ứng dụng tại: http://127.0.0.1:5000 (hoặc địa chỉ IP của máy nếu host='0.0.0.0')")
     # debug=True: tự động reload khi có thay đổi code, hiển thị lỗi chi tiết
     # host='0.0.0.0': cho phép truy cập từ các máy khác trong cùng mạng LAN
     # port=5000: cổng mặc định của Flask
