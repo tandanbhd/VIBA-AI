@@ -14,6 +14,8 @@ import os # Thư viện để xử lý biến môi trường (GOOGLE_API_KEY, GO
 import json # Parse nội dung JSON từ biến môi trường (Service Account JSON)
 from datetime import datetime # Thêm thư viện datetime để lấy giờ Việt Nam  
 import pytz # Đảm bảo thời gian ghi log theo đúng múi giờ Việt Nam (Asia/Ho_Chi_Minh)
+
+# Deploy trên Render thì không cần load_dotenv() nữa
 # from dotenv import load_dotenv # Thư viện để đọc biến môi trường từ file .env (nếu chạy local)
 # load_dotenv()  # Tự động đọc từ .env nếu chạy local
 
@@ -53,7 +55,7 @@ else:
 MODEL_NAME = "gemini-1.5-flash" # Hoặc model bạn muốn dùng
 generation_config = {
     "max_output_tokens": 1500,
-    "temperature": 0.7,
+    "temperature": 0.8,
     "top_p": 1.0
 }
 safety_settings = [
@@ -391,7 +393,7 @@ def chatlog():
 # === Khối thực thi chính khi chạy file app.py (chỉ chạy khi start bằng python app.py) ===
 # Phần này sẽ không được Render sử dụng trực tiếp, nhưng hữu ích để kiểm tra cấu hình ban đầu
 if __name__ != '__main__': # Thay đổi điều kiện để code bên dưới chạy khi import
-# Nếu Deploy internet thay == thành !=
+# Deploy internet thay == thành !=
     print("="*30)
     print("KHỞI TẠO ỨNG DỤNG VIBA AI CHAT")
     print("="*30)
@@ -435,4 +437,4 @@ if __name__ != '__main__': # Thay đổi điều kiện để code bên dưới 
     # port=5000: cổng mặc định của Flask
     
 
-    # Nếu chuyển sang sever online thì xóa app.run() đi Render sẽ dùng Gunicorn.
+    # Deploy sever online thì xóa app.run() đi Render sẽ dùng Gunicorn.
