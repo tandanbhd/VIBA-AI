@@ -54,9 +54,9 @@ else:
 
 MODEL_NAME = "gemini-1.5-flash" # Hoặc model bạn muốn dùng
 generation_config = {
-    "max_output_tokens": 1500,
-    "temperature": 0.8,
-    "top_p": 1.0
+    "max_output_tokens": 1024,
+    "temperature": 0.6,
+    "top_p": 0.9
 }
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},

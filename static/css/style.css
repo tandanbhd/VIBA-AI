@@ -27,7 +27,7 @@
 
         /* Định dạng chung cho các bong bóng tin nhắn */
         .message {
-            font-size: clamp(12px, 1.4vw, 14px);
+            font-size: clamp(14px, 1.4vw, 16px);
             padding: 10px 15px; /* Khoảng cách bên trong */
             margin-bottom: 12px; /* Khoảng cách giữa các tin nhắn */
             border-radius: 18px; /* Bo góc nhiều hơn cho bong bóng */
