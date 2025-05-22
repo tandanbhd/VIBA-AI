@@ -14,8 +14,8 @@ import os # Thư viện để xử lý biến môi trường (GOOGLE_API_KEY, GO
 import json # Parse nội dung JSON từ biến môi trường (Service Account JSON)
 from datetime import datetime # Thêm thư viện datetime để lấy giờ Việt Nam  
 import pytz # Đảm bảo thời gian ghi log theo đúng múi giờ Việt Nam (Asia/Ho_Chi_Minh)
-from dotenv import load_dotenv # Thư viện để đọc biến môi trường từ file .env (nếu chạy local)
-load_dotenv()  # Tự động đọc từ .env nếu chạy local
+# from dotenv import load_dotenv # Thư viện để đọc biến môi trường từ file .env (nếu chạy local)
+# load_dotenv()  # Tự động đọc từ .env nếu chạy local
 
 
 CHAT_SESSIONS = {}  # Dict: ma_can_bo -> phiên chat riêng
