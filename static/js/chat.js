@@ -1,16 +1,223 @@
-const chatContainer=document.getElementById('chat-container');const messageInput=document.getElementById('message-input');const sendButton=document.getElementById('send-button');const loadingIndicator=document.getElementById('loading-indicator');messageInput.addEventListener('input',()=>{messageInput.style.height='auto';messageInput.style.height=`${messageInput.scrollHeight}px`});let isVerified=!1;let currentEmployeeId=null;function addTimestamp(messageElement){const now=new Date();const timeString=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:!1});const timestampSpan=document.createElement('span');timestampSpan.classList.add('timestamp');timestampSpan.textContent=timeString;messageElement.appendChild(timestampSpan)}
-function typeEffect(element,text,callback){let i=0;const speed=20;element.textContent='';chatContainer.scrollTop=chatContainer.scrollHeight;function typeCharacter(){if(i<text.length){element.textContent+=text.charAt(i);i++;chatContainer.scrollTop=chatContainer.scrollHeight;setTimeout(typeCharacter,speed)}else{addTimestamp(element);chatContainer.scrollTop=chatContainer.scrollHeight;if(callback){callback()}}}
-typeCharacter()}
-function addMessageToChat(text,sender,useTypingEffect=!1,callback){const messageDiv=document.createElement('div');messageDiv.classList.add('message',`${sender}-message`);messageDiv.textContent=' ';chatContainer.appendChild(messageDiv);if(sender==='user'){messageDiv.textContent=text;addTimestamp(messageDiv);chatContainer.scrollTop=chatContainer.scrollHeight;if(callback)callback();}else if(sender==='ai'){if(useTypingEffect){messageDiv.textContent=text;typeEffect(messageDiv,text,callback)}else{messageDiv.textContent=text;addTimestamp(messageDiv);chatContainer.scrollTop=chatContainer.scrollHeight;if(callback)callback();}}
-setTimeout(()=>{chatContainer.scrollTop=chatContainer.scrollHeight},50)}
-function enableInputForQuestions(){messageInput.placeholder='Nhập câu hỏi của bạn...';messageInput.disabled=!1;sendButton.disabled=!1;sendButton.title='Gửi câu hỏi';messageInput.focus()}
-function enableInputForRetryVerification(){messageInput.placeholder='Mã không đúng. Vui lòng nhập lại Mã cán bộ...';messageInput.disabled=!1;sendButton.disabled=!1;sendButton.title='Gửi Mã cán bộ';messageInput.focus()}
-function disableInput(){messageInput.disabled=!0;sendButton.disabled=!0;sendButton.title='Đang xử lý...'}
-async function handleSend(){const messageText=messageInput.value.trim();if(!messageText)return;addMessageToChat(messageText,'user');const userMessageToSend=messageInput.value;messageInput.value='';disableInput();loadingIndicator.textContent='Đang xử lý yêu cầu...';loadingIndicator.style.display='block';chatContainer.scrollTop=chatContainer.scrollHeight;if(!isVerified){loadingIndicator.textContent='Đang xác thực Mã cán bộ...';try{const response=await fetch('/verify_employee',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({employee_id:userMessageToSend})});const data=await response.json();loadingIndicator.style.display='none';if(response.ok&&data.status==='success'){isVerified=!0;currentEmployeeId=userMessageToSend;addMessageToChat(data.greeting,'ai',!0,()=>{if(data.file_list&&data.file_list.length>0){let fileListMessage=" Tôi có thể hỗ trợ bạn trên cơ sở nội dung của các văn bản sau:\n";data.file_list.forEach((fileName,index)=>{fileListMessage+=`${index + 1}. ${fileName}\n`});fileListMessage=fileListMessage.trim();fileListMessage+="\n Ngoài ra tôi cũng có thể trả lời các câu hỏi khác như một trợ lý ảo thông minh.";fileListMessage+="\n Xin mời đặt câu hỏi.";addMessageToChat(fileListMessage,'ai',!0,()=>{enableInputForQuestions()})}else{addMessageToChat("Bạn cần hỗ trợ gì tiếp theo?",'ai',!0,()=>{enableInputForQuestions()})}})}else{const errorMessage=data.message||`Lỗi ${response.status}: Không thể xác thực.`;addMessageToChat(errorMessage,'ai',!0,()=>{enableInputForRetryVerification()})}}catch(error){console.error("Lỗi khi gọi /verify_employee:",error);loadingIndicator.style.display='none';addMessageToChat("Lỗi kết nối đến máy chủ xác thực. Vui lòng kiểm tra lại Mã cán bộ và thử lại.",'ai',!0,()=>{enableInputForRetryVerification()})}}else{loadingIndicator.textContent='VIBA AI đang trả lời...';try{const response=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:userMessageToSend,employee_id:currentEmployeeId})});loadingIndicator.style.display='none';if(!response.ok){let errorMsg=`Lỗi HTTP: ${response.status}.`;try{const errorData=await response.json();errorMsg+=` ${errorData.error || 'Không có thông tin lỗi chi tiết.'}`}catch(e){}
-throw new Error(errorMsg)}
-const data=await response.json();if(data.error){throw new Error(data.error)}
-addMessageToChat(data.answer||"Xin lỗi, tôi không thể đưa ra câu trả lời vào lúc này.",'ai',!0,()=>{enableInputForQuestions()})}catch(error){console.error("Lỗi khi gọi /ask:",error);loadingIndicator.style.display='none';addMessageToChat(`Đã xảy ra lỗi khi xử lý câu hỏi: ${error.message}. Vui lòng thử lại.`,'ai',!0,()=>{enableInputForQuestions()})}}}
-sendButton.addEventListener('click',handleSend);messageInput.addEventListener('keypress',function(event){if(event.key==='Enter'&&!messageInput.disabled){event.preventDefault();handleSend()}});function initializeChat(){console.log("Khởi tạo giao diện chat...");const welcomeMessage=`Xin chào! Tôi là VIBA - Trợ lý ảo thông minh phục vụ cán bộ BIDV Bắc Hải Dương.
-Tôi có thể giúp bạn tra cứu văn bản nội bộ, trả lời câu hỏi nghiệp vụ và hỗ trợ thông tin một cách chính xác, nhanh chóng.
-Vui lòng nhập Mã cán bộ để bắt đầu.`;addMessageToChat(welcomeMessage,'ai',!1,()=>{messageInput.placeholder='Nhập Mã cán bộ...';messageInput.disabled=!1;sendButton.disabled=!1;sendButton.title='Gửi Mã cán bộ';messageInput.focus();console.log("Giao diện sẵn sàng nhận Mã cán bộ.")})}
-document.addEventListener('DOMContentLoaded',initializeChat);
+const chatContainer = document.getElementById('chat-messages');
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
+const loadingIndicator = document.getElementById('loading-indicator');
+
+let isVerified = false;
+let currentEmployeeId = null;
+let typingAbort = null;
+let lastSender = null; // Để kiểm soát hiển thị avatar VIBA
+
+// Tự động resize ô nhập
+messageInput.addEventListener('input', () => {
+  messageInput.style.height = 'auto';
+  messageInput.style.height = `${messageInput.scrollHeight}px`;
+});
+
+// Enter để gửi
+messageInput.addEventListener('keypress', function (event) {
+  if (event.key === 'Enter' && !event.shiftKey && !messageInput.disabled) {
+    event.preventDefault();
+    handleSend();
+  }
+});
+
+sendButton.addEventListener('click', () => {
+  if (sendButton.classList.contains('stop')) {
+    if (typeof typingAbort === 'function') typingAbort();
+    stopTypingState();
+  } else {
+    handleSend();
+  }
+});
+
+function typeEffect(element, text, callback) {
+  let i = 0;
+  const speed = 12;
+  element.textContent = '';
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  let aborted = false;
+  typingAbort = () => aborted = true;
+
+  function typeCharacter() {
+    if (aborted) {
+      element.textContent = text;
+      addTimestamp(element);
+      if (callback) callback();
+      return;
+    }
+    if (i < text.length) {
+      element.textContent += text.charAt(i++);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      setTimeout(typeCharacter, speed);
+    } else {
+      addTimestamp(element);
+      if (callback) callback();
+    }
+  }
+
+  typeCharacter();
+}
+
+function startTypingState() {
+  sendButton.classList.add('stop');
+  sendButton.title = 'Dừng trả lời';
+  sendButton.innerHTML = '⏹';
+}
+
+function stopTypingState() {
+  typingAbort = null;
+  sendButton.classList.remove('stop');
+  sendButton.title = 'Gửi câu hỏi';
+  sendButton.innerHTML = '➤';
+  enableInputForQuestions();
+}
+
+function addTimestamp(container) {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const span = document.createElement('div');
+  span.classList.add('timestamp');
+  span.textContent = timeString;
+  container.appendChild(span);
+}
+
+function addMessageToChat(text, sender, useTyping = false, callback) {
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('message-wrapper', `${sender}-wrapper`);
+
+  // Avatar VIBA nếu là AI và khác lần trước
+  if (sender === 'ai') {
+    if (lastSender !== 'ai') {
+      const avatar = document.createElement('div');
+      avatar.classList.add('avatar');
+      wrapper.appendChild(avatar);
+    } else {
+      const spacer = document.createElement('div');
+      spacer.style.width = '32px';
+      wrapper.appendChild(spacer);
+    }
+  }
+
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message', `${sender}-message`);
+
+  if (sender === 'ai' && useTyping) {
+    startTypingState();
+    typeEffect(messageDiv, text, () => {
+      stopTypingState();
+      if (callback) callback();
+    });
+  } else {
+    messageDiv.textContent = text;
+    addTimestamp(messageDiv);
+    if (callback) callback();
+  }
+
+  wrapper.appendChild(messageDiv);
+  chatContainer.appendChild(wrapper);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  lastSender = sender;
+}
+
+function enableInputForQuestions() {
+  messageInput.placeholder = 'Nhập câu hỏi của bạn...';
+  messageInput.disabled = false;
+  sendButton.disabled = false;
+  sendButton.title = 'Gửi câu hỏi';
+  sendButton.innerHTML = '➤';
+  messageInput.focus();
+}
+
+function enableInputForRetryVerification() {
+  messageInput.placeholder = 'Mã không đúng. Vui lòng nhập lại Mã cán bộ...';
+  messageInput.disabled = false;
+  sendButton.disabled = false;
+  sendButton.title = 'Gửi Mã cán bộ';
+  messageInput.focus();
+}
+
+function disableInput() {
+  messageInput.disabled = true;
+  sendButton.disabled = true;
+  sendButton.title = 'Đang xử lý...';
+}
+
+async function handleSend() {
+  const text = messageInput.value.trim();
+  if (!text) return;
+
+  addMessageToChat(text, 'user');
+  messageInput.value = '';
+  messageInput.style.height = 'auto';
+  disableInput();
+
+  loadingIndicator.style.display = 'block';
+
+  if (!isVerified) {
+    loadingIndicator.textContent = 'Đang xác thực Mã cán bộ...';
+    try {
+      const res = await fetch('/verify_employee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_id: text })
+      });
+      const data = await res.json();
+      loadingIndicator.style.display = 'none';
+
+      if (res.ok && data.status === 'success') {
+        isVerified = true;
+        currentEmployeeId = text;
+        addMessageToChat(data.greeting, 'ai', true, () => {
+          const files = data.file_list || [];
+          if (files.length > 0) {
+            let msg = "Tôi có thể hỗ trợ bạn trên cơ sở các văn bản sau:\n";
+            files.forEach((f, i) => msg += `${i + 1}. ${f}\n`);
+            msg += "Xin mời đặt câu hỏi.";
+            addMessageToChat(msg.trim(), 'ai', true);
+          } else {
+            addMessageToChat("Bạn cần hỗ trợ gì tiếp theo?", 'ai', true);
+          }
+        });
+      } else {
+        addMessageToChat(data.message || "Xác thực thất bại.", 'ai', true, enableInputForRetryVerification);
+      }
+    } catch (e) {
+      loadingIndicator.style.display = 'none';
+      addMessageToChat("Lỗi kết nối xác thực. Vui lòng thử lại.", 'ai', true, enableInputForRetryVerification);
+    }
+  } else {
+    loadingIndicator.textContent = 'VIBA đang trả lời...';
+    try {
+      const res = await fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text, employee_id: currentEmployeeId })
+      });
+      const data = await res.json();
+      loadingIndicator.style.display = 'none';
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `Lỗi HTTP ${res.status}`);
+      }
+
+      addMessageToChat(data.answer || "Xin lỗi, tôi chưa có câu trả lời phù hợp.", 'ai', true);
+    } catch (e) {
+      loadingIndicator.style.display = 'none';
+      addMessageToChat(`Lỗi: ${e.message}`, 'ai', true);
+    }
+  }
+}
+
+function initializeChat() {
+  const welcome = `Xin chào! Tôi là VIBA - Trợ lý ảo nội bộ BIDV Bắc Hải Dương.\nTôi có thể giúp bạn tra cứu văn bản và trả lời câu hỏi nghiệp vụ.\nVui lòng nhập Mã cán bộ để bắt đầu.`;
+  addMessageToChat(welcome, 'ai', true, () => {
+    messageInput.placeholder = 'Nhập Mã cán bộ...';
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+    sendButton.title = 'Gửi Mã cán bộ';
+    messageInput.focus();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initializeChat);
