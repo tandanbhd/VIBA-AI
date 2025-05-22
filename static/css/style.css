@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #e5ecf1;
   display: flex;
   justify-content: center;
@@ -9,9 +9,9 @@ body {
 }
 
 .chat-container {
-max-width: 800px; /* Chiều rộng tối đa */
-width: 95%; /* Chiều rộng linh hoạt */
-height: 95vh; /* Chiều cao linh hoạt */
+max-width: 100%; /* Chiều rộng tối đa */
+width: 100%; /* Chiều rộng linh hoạt */
+height: 90vh; /* Chiều cao linh hoạt */
 margin: auto; /* Căn giữa theo chiều ngang */
 flex-grow: 1; /* Cho phép khung chat co giãn để lấp đầy không gian */
 overflow-y: hidden; /* Thêm thanh cuộn dọc khi nội dung vượt quá */
@@ -20,7 +20,7 @@ display: flex;
 flex-direction: column;
 justify-content: flex-start; /* Tin nhắn bắt đầu từ trên xuống */
 border: 1px solid #ddd; /* Viền nhẹ */
-background-color: #ffffff; /* Nền trắng cho khung chat */
+background-color: #9da4a6; /* Nền trắng cho khung chat */
 border-radius: 8px; /* Bo góc nhẹ */
 margin-bottom: 0; /* Không có khoảng cách dưới cùng với input */
 }
@@ -38,7 +38,7 @@ margin-bottom: 0; /* Không có khoảng cách dưới cùng với input */
 /* Tin nhắn - khung cha chứa cả avatar và nội dung */
 .message-wrapper {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -88,7 +88,7 @@ margin-bottom: 0; /* Không có khoảng cách dưới cùng với input */
 
 /* Timestamp nhỏ gọn */
 .timestamp {
-  font-size: 11px;
+  font-size: 10px;
   color: #888;
   margin-top: 4px;
   margin-bottom: 2px;
@@ -107,7 +107,7 @@ margin-bottom: 0; /* Không có khoảng cách dưới cùng với input */
   border: none;
   padding: 10px 14px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 1rem;
   resize: none;
   line-height: 1.5;
   background-color: #f8f9fa;
