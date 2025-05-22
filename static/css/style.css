@@ -1,3 +1,4 @@
+/* Thiết lập font chữ và màu nền chung */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa; /* Màu nền xám nhạt */
@@ -44,7 +45,32 @@
             float: right; /* Đẩy sang phải (cần clear: both ở trên) */
             margin-left: 25%; /* Đảm bảo không chiếm toàn bộ chiều rộng */
         }
+        /* Avatar AI */
+        .message-wrapper {
+        display: flex;
+        align-items: flex-start;  /* ✅ Canh đỉnh giữa avatar và message */
+        gap: 8px;
+        margin-bottom: 6px;
+        }
 
+        .ai-wrapper {
+        justify-content: flex-start;
+        }
+
+        .user-wrapper {
+        justify-content: flex-end;
+        }
+
+        .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-image: url('/static/img/VIBA.png');
+        background-size: cover;
+        background-position: center;
+        flex-shrink: 0;
+        margin-top: 0; /* ✅ Không đẩy avatar xuống */
+        }           
         /* Tin nhắn của AI */
         .ai-message {
             background-color: #e8eff1; /* Màu xám rất nhạt */
