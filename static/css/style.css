@@ -11,7 +11,7 @@ body {
 .chat-container {
 max-width: 100%; /* Chiều rộng tối đa */
 width: 100%; /* Chiều rộng linh hoạt */
-height: 90vh; /* Chiều cao linh hoạt */
+height: 100vh; /* Chiều cao linh hoạt */
 margin: auto; /* Căn giữa theo chiều ngang */
 flex-grow: 1; /* Cho phép khung chat co giãn để lấp đầy không gian */
 overflow-y: hidden; /* Thêm thanh cuộn dọc khi nội dung vượt quá */
@@ -20,7 +20,7 @@ display: flex;
 flex-direction: column;
 justify-content: flex-start; /* Tin nhắn bắt đầu từ trên xuống */
 border: 1px solid #ddd; /* Viền nhẹ */
-background-color: #9da4a6; /* Nền trắng cho khung chat */
+background-color: #ffffff; /* Nền trắng cho khung chat */
 border-radius: 8px; /* Bo góc nhẹ */
 margin-bottom: 0; /* Không có khoảng cách dưới cùng với input */
 }
