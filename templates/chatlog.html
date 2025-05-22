@@ -2,24 +2,109 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>VIBA chatlogs</title>
+  <title>Lịch sử chat - VIBA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f7f9fb;
+      padding: 30px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      color: #0d6efd;
+      margin-bottom: 20px;
+    }
+
+    form {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="password"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    button:hover {
+      background-color: #0b5ed7;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f3f5;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+  </style>
 </head>
 <body>
-  <h2>VIBA chatlogs</h2>
+  <h2>Xem lịch sử hỏi đáp VIBA</h2>
+
   <form method="POST">
     <input type="password" name="password" placeholder="Nhập mật khẩu admin" required>
-    <button type="submit">Xem</button>
+    <button type="submit">Xem log</button>
   </form>
+
   {% if error %}
-    <p style="color:red">{{ error }}</p>
+    <div class="error">{{ error }}</div>
   {% endif %}
+
   {% if logs %}
-    <h3>Kết quả:</h3>
-    <table border="1" cellpadding="5">
-      <tr><th>Họ tên</th><th>Thời gian</th><th>Câu hỏi</th><th>Trả lời</th></tr>
-      {% for row in logs %}
-        <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
-      {% endfor %}
+    <table>
+      <thead>
+        <tr>
+          <th>Họ tên</th>
+          <th>Thời gian</th>
+          <th>Câu hỏi</th>
+          <th>Trả lời</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in logs %}
+          <tr>
+            {% for cell in row %}
+              <td>{{ cell }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
   {% endif %}
 </body>
