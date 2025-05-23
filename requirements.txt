@@ -2,6 +2,7 @@ Flask
 flask-cors
 google-api-python-client
 python-docx
+openpyxl
 google-auth
 google-generativeai
 google-auth-httplib2
