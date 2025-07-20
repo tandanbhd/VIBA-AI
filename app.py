@@ -53,7 +53,7 @@ else:
     except Exception as e:
         print(f"LỖI CẤU HÌNH GEMINI API: {e}. Vui lòng kiểm tra API Key.")
 
-MODEL_NAME = "gemini-2.5-flash" # Hoặc model bạn muốn dùng
+MODEL_NAME = "gemini-2.0-flash" # Hoặc model bạn muốn dùng
 generation_config = {
     "max_output_tokens": 1024,
     "temperature": 0.6,
